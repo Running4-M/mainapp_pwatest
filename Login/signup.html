@@ -681,9 +681,8 @@ body {
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
         </section>
-        <!-- PWA Install Section (only shows on mobile) -->
 <!-- PWA Install Section -->
-<div id="pwa-install-section" style="display:none; margin-top:1rem;">
+<div id="pwa-install-section" style="display:block; margin-top:1rem;">
   <button id="pwa-install-btn" class="btn btn-primary w-full">Install Mobile App</button>
   <div id="pwa-install-info" style="font-size:.8rem; color:#6b7280; margin-top:.4rem; text-align:center;"></div>
 </div>
@@ -1076,32 +1075,30 @@ function isMobile() {
   return window.innerWidth < 700 || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 }
 
+// Always show the install section on mobile
+window.addEventListener("DOMContentLoaded", () => {
+  if (isMobile()) installSection.style.display = "block";
+});
+
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  if (isMobile()) installSection.style.display = "block";
+  installSection.style.display = "block";
   installInfo.textContent = "Install Catalyst as a mobile app for full-screen experience!";
 });
 
 installBtn?.addEventListener("click", async () => {
-  if (!deferredPrompt) return;
-  deferredPrompt.prompt();
-  const { outcome } = await deferredPrompt.userChoice;
-  if (outcome === "accepted") {
-    installInfo.textContent = "App installed! Open from your home screen.";
-    installBtn.style.display = "none";
-  } else {
-    installInfo.textContent = "You can install later from your browser menu.";
-  }
-});
-
-window.addEventListener("load", () => {
-  if (isMobile() && !window.matchMedia('(display-mode: standalone)').matches) {
-    // iOS tip (since iOS doesn't fire beforeinstallprompt)
-    if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      installSection.style.display = "block";
-      installInfo.textContent = "On iPhone/iPad: Tap Share → Add to Home Screen to install.";
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === "accepted") {
+      installInfo.textContent = "App installed! Open from your home screen.";
+      installBtn.style.display = "none";
+    } else {
+      installInfo.textContent = "You can install later from your browser menu.";
     }
+  } else {
+    installInfo.textContent = "If you don't see an install prompt, use your browser's menu to 'Add to Home Screen'.";
   }
 });
 
